@@ -9,12 +9,12 @@
 
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:type" content="@yield('og_type', 'website')">
-    <meta property="og:title" content="@yield('title') | @yield('site_name', 'Hệ Thống Quản Lý Kho')">
-    <meta property="og:description" content="@yield('meta_description', 'Kho SaaS - Hệ Thống Quản Lý Kho')">
+    <meta property="og:title" content="Đăng Nhập - Kho SaaS">
+    <meta property="og:description" content="Kho SaaS - Hệ Thống Quản Lý Kho">
     <meta property="og:image" content="@yield('og_image', asset('img/og_image.jpg'))">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="@yield('title', 'Hệ Thống Quản Lý Kho')">
+    <meta property="og:image:alt" content="Hệ Thống Quản Lý Kho">
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
