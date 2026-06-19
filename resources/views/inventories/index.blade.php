@@ -1,20 +1,24 @@
 @extends('layouts.app')
+@section('title', 'Báo Cáo Tồn Kho Thực Tế')
 @section('header_title', 'Báo Cáo Tồn Kho Thực Tế')
 
 @section('content')
 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-    <!-- Filter Section -->
     <div class="p-5 sm:p-6 border-b border-slate-100 bg-white">
-        <div class="flex flex-col sm:flex-row items-center gap-4">
+        <form action="{{ route('inventories.index') }}" method="GET" class="flex flex-col sm:flex-row items-center gap-4">
 
             <div class="relative w-full sm:w-64">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                 </div>
-                <select class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none appearance-none">
+                <select name="warehouse_id" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none appearance-none cursor-pointer">
                     <option value="">Tất cả kho bãi</option>
+                    @foreach($warehouses ?? [] as $wh)
+                        <option value="{{ $wh->id }}" {{ request('warehouse_id') == $wh->id ? 'selected' : '' }}>
+                            {{ $wh->name }}
+                        </option>
+                    @endforeach
                 </select>
-                <!-- Custom Arrow for Select -->
                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
@@ -24,17 +28,22 @@
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
-                <input type="text" placeholder="Tìm theo SKU, tên sản phẩm..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none placeholder-slate-400">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Tìm theo SKU, tên sản phẩm..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none placeholder-slate-400">
             </div>
 
-            <button class="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg hover:shadow-slate-500/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+            @if(request('warehouse_id') || request('search'))
+                <a href="{{ route('inventories.index') }}" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition-all flex items-center justify-center">
+                    Xóa lọc
+                </a>
+            @endif
+
+            <button type="submit" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg hover:shadow-slate-500/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                 Lọc Dữ Liệu
             </button>
-        </div>
+        </form>
     </div>
 
-    <!-- Table Content -->
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse min-w-max">
             <thead>
@@ -91,7 +100,7 @@
                         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4 text-slate-400">
                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                         </div>
-                        <p class="text-slate-500 font-medium">Chưa có dữ liệu tồn kho. Nhập kho để bắt đầu theo dõi số lượng.</p>
+                        <p class="text-slate-500 font-medium">Không tìm thấy dữ liệu tồn kho nào khớp với tìm kiếm của bạn.</p>
                     </td>
                 </tr>
                 @endforelse

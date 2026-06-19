@@ -8,9 +8,21 @@ use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with('units')->latest()->get();
+        // Bắt đầu khởi tạo query
+        $query = Product::with('units')->latest();
+
+        // Kiểm tra xem có tham số 'search' được gửi lên hay không
+        if ($request->has('search') && $request->search != '') {
+            $searchTerm = $request->search;
+            $query->where('sku', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('name', 'LIKE', '%' . $searchTerm . '%');
+        }
+
+        // Thực thi query và lấy kết quả
+        $products = $query->get();
+
         return view('products.index', compact('products'));
     }
 

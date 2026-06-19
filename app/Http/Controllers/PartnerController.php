@@ -10,9 +10,22 @@ class PartnerController extends Controller
     public function index(Request $request)
     {
         $query = Partner::query();
+
+        // Lọc theo Loại đối tác
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
+
+        // Lọc theo Từ khóa tìm kiếm (Mã, Tên, SĐT)
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('code', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('name', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('phone', 'LIKE', '%' . $searchTerm . '%');
+            });
+        }
+
         $partners = $query->latest()->get();
         return view('partners.index', compact('partners'));
     }
@@ -33,7 +46,15 @@ class PartnerController extends Controller
 
     public function update(Request $request, Partner $partner)
     {
-        $partner->update($request->all());
+        $validated = $request->validate([
+            'type' => 'required|in:supplier,customer,both',
+            'code' => 'required|string|max:50',
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+        ]);
+
+        $partner->update($validated);
         return back()->with('success', 'Cập nhật đối tác thành công!');
     }
 

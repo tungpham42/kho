@@ -7,6 +7,7 @@ use App\Models\Inventory;
 use App\Models\Warehouse;
 use App\Models\Partner;
 use App\Models\Product;
+use App\Models\Setting; // Thêm Model Setting
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -27,16 +28,20 @@ class OrderController extends Controller
             'details' => 'required|array',
         ]);
 
-        DB::transaction(function () use ($request) {
+        // Lấy cấu hình tiền tố
+        $setting = Setting::first();
+        $prefix = $setting ? $setting->order_prefix : 'ORD-';
+
+        DB::transaction(function () use ($request, $prefix) {
             // 1. Tạo phiếu gốc (Master)
             $order = Order::create([
                 'warehouse_id' => $request->warehouse_id,
                 'partner_id' => $request->partner_id,
-                'code' => 'ORD-' . time(),
+                'code' => $prefix . time(), // Áp dụng tiền tố
                 'type' => $request->type,
                 'order_date' => $request->order_date,
                 'status' => 'draft',
-                'total_amount' => 0, // Sẽ cập nhật sau khi lặp chi tiết
+                'total_amount' => 0,
                 'final_amount' => 0,
             ]);
 
@@ -44,7 +49,6 @@ class OrderController extends Controller
 
             // 2. Lưu chi tiết hàng hóa (Details)
             foreach ($request->details as $item) {
-                // Tự động tính thành tiền trên Server: Số lượng * Đơn giá
                 $lineTotal = $item['quantity'] * $item['price'];
                 $totalAmount += $lineTotal;
 
@@ -52,20 +56,19 @@ class OrderController extends Controller
                     'product_id' => $item['product_id'],
                     'unit_name' => $item['unit_name'],
                     'quantity' => $item['quantity'],
-                    'base_quantity' => $item['base_quantity'] ?? $item['quantity'], // Phòng hờ nếu frontend không gửi base_quantity
+                    'base_quantity' => $item['base_quantity'] ?? $item['quantity'],
                     'price' => $item['price'],
-                    'total' => $lineTotal, // Đã giải quyết lỗi thiếu cột total
+                    'total' => $lineTotal,
                 ]);
             }
 
             // 3. Cập nhật lại tổng tiền cho phiếu gốc
             $order->update([
                 'total_amount' => $totalAmount,
-                'final_amount' => $totalAmount, // Ở mức cơ bản final = total. Nếu có discount thì xử lý trừ sau.
+                'final_amount' => $totalAmount,
             ]);
         });
 
-        // Đổi back() thành redirect về danh sách cho chuẩn UX
         return redirect()->route('orders.index')->with('success', 'Tạo phiếu nháp thành công!');
     }
 
@@ -110,7 +113,6 @@ class OrderController extends Controller
 
     public function create()
     {
-        // Lấy danh sách kho đang hoạt động, đối tác và sản phẩm
         $warehouses = Warehouse::where('is_active', true)->get();
         $partners = Partner::latest()->get();
         $products = Product::latest()->get();

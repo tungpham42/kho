@@ -7,9 +7,18 @@ use Illuminate\Http\Request;
 
 class WarehouseController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $warehouses = Warehouse::latest()->get();
+        $query = Warehouse::latest();
+
+        // Kiểm tra xem có tham số 'search' được gửi lên hay không
+        if ($request->has('search') && $request->search != '') {
+            $searchTerm = $request->search;
+            $query->where('code', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('name', 'LIKE', '%' . $searchTerm . '%');
+        }
+
+        $warehouses = $query->get();
         return view('warehouses.index', compact('warehouses'));
     }
 
@@ -28,6 +37,7 @@ class WarehouseController extends Controller
     public function update(Request $request, Warehouse $warehouse)
     {
         $validated = $request->validate([
+            'code' => 'required|string|max:50',
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
             'is_active' => 'boolean'

@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Lập Phiếu Điều Chuyển Kho')
 @section('header_title', 'Lập Phiếu Điều Chuyển Kho')
 
 @section('content')

@@ -3,8 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WMS SaaS - Hệ Thống Quản Lý Kho</title>
-    <!-- Plus Jakarta Sans Font -->
+    <title>@yield('title') | @yield('site_name', 'Hệ Thống Quản Lý Kho')</title>
+
+    <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
+
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:title" content="@yield('title') | @yield('site_name', 'Hệ Thống Quản Lý Kho')">
+    <meta property="og:description" content="@yield('meta_description', 'Kho SaaS - Hệ Thống Quản Lý Kho')">
+    <meta property="og:image" content="@yield('og_image', asset('img/og_image.jpg'))">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="@yield('title', 'Hệ Thống Quản Lý Kho')">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -23,13 +34,11 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
 
-    <!-- Mobile Sidebar Overlay -->
     <div x-cloak x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-slate-900/50 z-20 lg:hidden backdrop-blur-sm transition-opacity"></div>
 
-    <!-- Sidebar -->
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-30 w-72 bg-[#0f172a] text-slate-300 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:w-64 border-r border-slate-800 shadow-2xl lg:shadow-none">
         <div class="h-20 flex items-center justify-center border-b border-slate-800/60 font-extrabold text-2xl tracking-tight text-white bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
-            WMS SAAS
+            KHO SAAS
         </div>
         <nav class="flex-1 px-4 py-8 space-y-1.5 overflow-y-auto">
             <a href="{{ route('dashboard') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('dashboard') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">
@@ -44,14 +53,17 @@
             <div class="text-[11px] uppercase tracking-wider text-slate-500 mt-6 mb-3 font-bold px-4">Nghiệp vụ</div>
             <a href="{{ route('orders.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('orders*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Nhập / Xuất</a>
             <a href="{{ route('transfers.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('transfers*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Chuyển kho</a>
+            <a href="{{ route('stocktakes.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('stocktakes*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Kiểm kê kho</a>
 
             <div class="text-[11px] uppercase tracking-wider text-slate-500 mt-6 mb-3 font-bold px-4">Báo cáo</div>
             <a href="{{ route('inventories.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('inventories*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Tồn kho</a>
+
+            <div class="text-[11px] uppercase tracking-wider text-slate-500 mt-6 mb-3 font-bold px-4">Hệ thống</div>
+            <a href="{{ route('settings.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('settings*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Cấu hình</a>
         </nav>
     </aside>
 
     <div class="flex-1 flex flex-col h-screen overflow-hidden w-full">
-        <!-- Header -->
         <header class="h-20 bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 z-10">
             <div class="flex items-center gap-4">
                 <button @click="sidebarOpen = true" class="lg:hidden text-slate-500 hover:text-indigo-600 focus:outline-none p-2 rounded-lg hover:bg-slate-100 transition">

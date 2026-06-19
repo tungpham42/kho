@@ -6,6 +6,7 @@ use App\Models\StockTransfer;
 use App\Models\Inventory;
 use App\Models\Warehouse;
 use App\Models\Product;
+use App\Models\Setting; // Thêm Model Setting
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -19,7 +20,6 @@ class StockTransferController extends Controller
 
     public function create()
     {
-        // Lấy danh sách kho và sản phẩm
         $warehouses = Warehouse::where('is_active', true)->get();
         $products = Product::latest()->get();
 
@@ -35,9 +35,13 @@ class StockTransferController extends Controller
             'details' => 'required|array',
         ]);
 
-        DB::transaction(function () use ($request) {
+        // Lấy cấu hình tiền tố
+        $setting = Setting::first();
+        $prefix = $setting ? $setting->transfer_prefix : 'TRF-';
+
+        DB::transaction(function () use ($request, $prefix) {
             $transfer = StockTransfer::create([
-                'code' => 'TRF-' . time(),
+                'code' => $prefix . time(), // Áp dụng tiền tố
                 'from_warehouse_id' => $request->from_warehouse_id,
                 'to_warehouse_id' => $request->to_warehouse_id,
                 'transfer_date' => $request->transfer_date,
@@ -48,7 +52,6 @@ class StockTransferController extends Controller
                 $transfer->details()->create([
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    // Lấy batch_number / expiry_date nếu hệ thống bạn có nhập
                 ]);
             }
         });
@@ -75,7 +78,6 @@ class StockTransferController extends Controller
                         'expiry_date' => $detail->expiry_date,
                     ]);
 
-                    // Lấy luôn tên sản phẩm ra báo lỗi cho thân thiện thay vì báo mỗi ID
                     if ($fromInv->quantity < $detail->quantity) {
                         $productName = $detail->product->name ?? 'ID ' . $detail->product_id;
                         throw new \Exception("Sản phẩm [{$productName}] không đủ tồn kho tại kho xuất! (Tồn hệ thống: {$fromInv->quantity})");
@@ -100,7 +102,6 @@ class StockTransferController extends Controller
             return back()->with('success', 'Đã duyệt phiếu chuyển kho thành công!');
 
         } catch (\Exception $e) {
-            // Bắt lỗi và trả về giao diện bằng SweetAlert2
             return back()->withErrors($e->getMessage());
         }
     }

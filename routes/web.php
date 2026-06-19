@@ -9,6 +9,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\StocktakeController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\SettingController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -42,9 +43,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('transfers', StockTransferController::class)->only(['index', 'create', 'store']);
     Route::post('transfers/{transfer}/approve', [StockTransferController::class, 'approve'])->name('transfers.approve');
 
-    Route::resource('stocktakes', StocktakeController::class)->only(['index', 'store']);
+    Route::resource('stocktakes', StocktakeController::class)->only(['index', 'create', 'store', 'destroy']);
     Route::post('stocktakes/{stocktake}/approve', [StocktakeController::class, 'approve'])->name('stocktakes.approve');
 
     // Reports
     Route::get('/inventories', [InventoryController::class, 'index'])->name('inventories.index');
+
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SettingController::class, 'store'])->name('settings.store');
 });
