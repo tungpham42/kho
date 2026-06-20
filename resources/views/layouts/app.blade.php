@@ -34,6 +34,17 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
 
+    @php
+        // Khởi tạo các biến kiểm tra quyền để code HTML gọn gàng hơn
+        $isTenant = auth('web')->check();
+        $currentUser = auth('web')->user() ?? auth('employee')->user();
+        $employeeRoles = auth('employee')->check() ? ($currentUser->roles ?? []) : [];
+
+        $hasRole = function($role) use ($isTenant, $employeeRoles) {
+            return $isTenant || in_array($role, $employeeRoles);
+        };
+    @endphp
+
     <div x-cloak x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-slate-900/50 z-20 lg:hidden backdrop-blur-sm transition-opacity"></div>
 
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-30 w-72 bg-[#0f172a] text-slate-300 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:w-64 border-r border-slate-800 shadow-2xl lg:shadow-none">
@@ -45,21 +56,35 @@
                 <span class="font-medium">Tổng quan</span>
             </a>
 
+            @if($hasRole('manage_products'))
             <div class="text-[11px] uppercase tracking-wider text-slate-500 mt-6 mb-3 font-bold px-4">Danh mục</div>
             <a href="{{ route('products.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('products*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Hàng hóa</a>
             <a href="{{ route('warehouses.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('warehouses*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Kho bãi</a>
             <a href="{{ route('partners.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('partners*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Đối tác</a>
+            @endif
 
+            @if($hasRole('manage_orders') || $hasRole('manage_inventory'))
             <div class="text-[11px] uppercase tracking-wider text-slate-500 mt-6 mb-3 font-bold px-4">Nghiệp vụ</div>
-            <a href="{{ route('orders.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('orders*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Nhập / Xuất</a>
-            <a href="{{ route('transfers.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('transfers*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Chuyển kho</a>
-            <a href="{{ route('stocktakes.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('stocktakes*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Kiểm kê kho</a>
+                @if($hasRole('manage_orders'))
+                <a href="{{ route('orders.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('orders*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Nhập / Xuất</a>
+                @endif
 
+                @if($hasRole('manage_inventory'))
+                <a href="{{ route('transfers.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('transfers*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Chuyển kho</a>
+                <a href="{{ route('stocktakes.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('stocktakes*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Kiểm kê kho</a>
+                @endif
+            @endif
+
+            @if($hasRole('view_reports'))
             <div class="text-[11px] uppercase tracking-wider text-slate-500 mt-6 mb-3 font-bold px-4">Báo cáo</div>
             <a href="{{ route('inventories.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('inventories*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Tồn kho</a>
+            @endif
 
+            @if($isTenant)
             <div class="text-[11px] uppercase tracking-wider text-slate-500 mt-6 mb-3 font-bold px-4">Hệ thống</div>
+            <a href="{{ route('employees.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('employees*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Nhân viên</a>
             <a href="{{ route('settings.index') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 {{ request()->is('settings*') ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">Cấu hình</a>
+            @endif
         </nav>
     </aside>
 
@@ -77,9 +102,12 @@
             <div class="flex items-center gap-3 sm:gap-5">
                 <div class="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 shadow-sm">
                     <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm">
-                        {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                        {{ substr($currentUser->name ?? 'U', 0, 1) }}
                     </div>
-                    <span class="text-sm font-semibold text-slate-700 hidden sm:block">{{ auth()->user()->company_name ?? auth()->user()->name }}</span>
+                    <span class="text-sm font-semibold text-slate-700 hidden sm:block">
+                        {{ $currentUser->company_name ?? $currentUser->name }}
+                        @if(!$isTenant) <span class="text-xs font-normal text-slate-500 ml-1">(Nhân viên)</span> @endif
+                    </span>
                 </div>
                 <form action="{{ route('logout') }}" method="POST" class="m-0">
                     @csrf

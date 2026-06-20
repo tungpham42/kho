@@ -21,9 +21,18 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        $remember = $request->boolean('remember');
+
+        // 1. Thử đăng nhập với tư cách Chủ doanh nghiệp (Tenant)
+        if (Auth::guard('web')->attempt($credentials, $remember)) {
             $request->session()->regenerate();
-            return redirect()->intended('dashboard')->with('success', 'Đăng nhập thành công!');
+            return redirect()->intended('dashboard')->with('success', 'Đăng nhập thành công (Chủ tài khoản)!');
+        }
+
+        // 2. Thử đăng nhập với tư cách Nhân viên (Employee)
+        if (Auth::guard('employee')->attempt($credentials, $remember)) {
+            $request->session()->regenerate();
+            return redirect()->intended('dashboard')->with('success', 'Đăng nhập thành công (Nhân viên)!');
         }
 
         return back()->withErrors(['email' => 'Thông tin đăng nhập không chính xác.'])->onlyInput('email');
@@ -57,9 +66,13 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        // Đăng xuất khỏi cả 2 guard nếu có
+        Auth::guard('web')->logout();
+        Auth::guard('employee')->logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/login');
     }
 }

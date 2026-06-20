@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\Employee;
 
 return [
 
@@ -42,6 +43,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        // Thêm guard cho nhân viên
+        'employee' => [
+            'driver' => 'session',
+            'provider' => 'employees',
+        ],
     ],
 
     /*
@@ -66,11 +72,11 @@ return [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        // Thêm provider cho nhân viên
+        'employees' => [
+            'driver' => 'eloquent',
+            'model' => Employee::class,
+        ],
     ],
 
     /*

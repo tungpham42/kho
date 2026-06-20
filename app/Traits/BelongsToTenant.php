@@ -8,17 +8,28 @@ trait BelongsToTenant
 {
     protected static function bootBelongsToTenant()
     {
-        // Tự động filter dữ liệu theo User đang đăng nhập
-        static::addGlobalScope('tenant', function (Builder $builder) {
-            if (auth()->check()) {
-                $builder->where('user_id', auth()->id());
+        // Hàm lấy ID của Tenant hiện tại
+        $getTenantId = function () {
+            if (auth('web')->check()) {
+                return auth('web')->id(); // Nếu là chủ doanh nghiệp
+            }
+            if (auth('employee')->check()) {
+                return auth('employee')->user()->user_id; // Nếu là nhân viên, lấy user_id (ID chủ)
+            }
+            return null;
+        };
+
+        static::addGlobalScope('tenant', function (Builder $builder) use ($getTenantId) {
+            $tenantId = $getTenantId();
+            if ($tenantId) {
+                $builder->where($builder->getModel()->getTable() . '.user_id', $tenantId);
             }
         });
 
-        // Tự động gán user_id khi tạo mới bản ghi
-        static::creating(function ($model) {
-            if (auth()->check()) {
-                $model->user_id = auth()->id();
+        static::creating(function ($model) use ($getTenantId) {
+            $tenantId = $getTenantId();
+            if ($tenantId) {
+                $model->user_id = $tenantId;
             }
         });
     }
