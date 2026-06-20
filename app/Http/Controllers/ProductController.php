@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel; // Thêm dòng này
+use App\Exports\ProductsExport;      // Thêm dòng này
+use App\Imports\ProductsImport;
 
 class ProductController extends Controller
 {
@@ -57,5 +60,30 @@ class ProductController extends Controller
     {
         $product->delete();
         return back()->with('success', 'Đã xóa sản phẩm!');
+    }
+
+    public function export()
+    {
+        return Excel::download(new ProductsExport(false), 'Danh_Sach_San_Pham.xlsx');
+    }
+
+    public function downloadTemplate()
+    {
+        return Excel::download(new ProductsExport(true), 'File_Mau_San_Pham.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:51200',
+        ]);
+
+        try {
+            Excel::import(new ProductsImport, $request->file('file'));
+            return back()->with('success', 'Nhập dữ liệu từ Excel thành công!');
+        } catch (\Exception $e) {
+            // Tạm thời in ra lỗi thật để xem nguyên nhân là gì
+            return back()->with('error', 'Lỗi: ' . $e->getMessage());
+        }
     }
 }

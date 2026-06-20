@@ -31,6 +31,9 @@ Route::middleware('auth:web,employee')->group(function () {
 
     // === NHÓM QUYỀN: QUẢN LÝ SẢN PHẨM (manage_products) ===
     Route::middleware('role:manage_products')->group(function () {
+        Route::get('products/export', [ProductController::class, 'export'])->name('products.export');
+        Route::post('products/import', [ProductController::class, 'import'])->name('products.import');
+        Route::get('products/template', [ProductController::class, 'downloadTemplate'])->name('products.template');
         Route::resource('warehouses', WarehouseController::class)->except(['create', 'show', 'edit']);
         Route::resource('partners', PartnerController::class)->except(['create', 'show', 'edit']);
         Route::resource('products', ProductController::class)->except(['create', 'show', 'edit']);
