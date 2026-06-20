@@ -71,13 +71,27 @@
                     </td>
                     <td class="p-4">
                         <div class="flex flex-col gap-1.5 items-start">
+                            <!-- Hiển thị Số Lô -->
                             <span class="inline-block bg-slate-100 text-slate-600 text-xs font-bold px-2.5 py-1 rounded-md border border-slate-200">
                                 Lô: {{ $inv->batch_number ?: 'N/A' }}
                             </span>
-                            @if($inv->expiry_date)
-                                <span class="inline-flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-100">
+
+                            <!-- Hiển thị Date (Hạn Sử Dụng) -->
+                            @if(!empty($inv->expiry_date))
+                                @php
+                                    // Kiểm tra xem đã quá hạn hay chưa
+                                    $isExpired = \Carbon\Carbon::parse($inv->expiry_date)->isPast();
+                                @endphp
+                                <span class="inline-flex items-center gap-1 text-xs font-bold {{ $isExpired ? 'text-red-600 bg-red-100 border-red-200' : 'text-emerald-600 bg-emerald-50 border-emerald-100' }} px-2.5 py-1 rounded-md border">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     HSD: {{ \Carbon\Carbon::parse($inv->expiry_date)->format('d/m/Y') }}
+                                    @if($isExpired)
+                                        (Đã hết hạn)
+                                    @endif
+                                </span>
+                            @else
+                                <span class="inline-block bg-slate-50 text-slate-400 text-xs font-bold px-2.5 py-1 rounded-md border border-slate-100">
+                                    Không có HSD
                                 </span>
                             @endif
                         </div>
